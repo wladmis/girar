@@ -487,6 +487,8 @@ case "$action" in
 	printf '%s\n' "$nevr" >gears/$i/nevr
 	rpmquery --qf 'srpm:%{sha1header}\n' -p gears/$i/"$srpm_name" >gears/$i/sid
 	touch gears/$i/rebuild
+	[ -z "${copy_repo-}" ] ||
+		touch gears/$i/copy
 	girar-task-change-state "$id" NEW
 	girar-webapi-subtask create "$id" "$i"
 	echo >&2 "task #$id: added #$i: rebuild srpm $srpm_name"
@@ -503,6 +505,9 @@ printf '%s\n' "$tag_author" >gears/$i/tag_author
 printf '%s\n' "$GIRAR_USER" >gears/$i/userid
 if [ "$action" = rebuild ]; then
 	printf '%s\n' "$package" >gears/$i/package
+	touch gears/$i/rebuild
+	[ -z "${copy_repo-}" ] ||
+		touch gears/$i/copy
 fi
 
 GIT_DIR=gears/$i/git

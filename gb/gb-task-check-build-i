@@ -51,6 +51,9 @@ fi
 
 sid="$(cat "gears/$i/sid")" ||
 	Fatal 'source id not found'
+rebuild_author=
+[ ! -f "gears/$i/rebuild" -o -f "gears/$i/copy" ] ||
+	rebuild_author="$(cat "gears/$i/userid")"
 
 cd build/$i
 
@@ -159,7 +162,7 @@ check_nevr()
 			[ -z "$a" ] || [ "$a" = "$a0" ] ||
 			[ "$a" = 'noarch' ] || [ "$a0" = 'noarch' ] ||
 				continue
-			if [ -z "$GB_ALLOW_SAME_NEVR" ]; then
+			if [ -z "$GB_ALLOW_SAME_NEVR" ] || [ -z "$rebuild_author" ]; then
 				is_ver1_lt_ver2 "$evr0" "$evr" ||
 					Fatal "${a:-$t} package \`$n' version \`$evr' is not greater than its version \`$evr0' in \`$r'"
 			else
@@ -212,7 +215,14 @@ for arch in $GB_ARCH; do
 	done
 
 	# check changelog name
-	find "$arch/" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "$userid" '{}' '+' ||
+	find "$arch/rpms" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "${rebuild_author:-$userid}" '{}' '+' ||
+		Fatal 'changelog name check FAILED'
+	if [ -n "$rebuild_author" -a -z "$srpm" ]; then
+		author=$rebuild_author
+	else
+		author=$userid
+	fi
+	find "$arch/srpm" -type f -name '*.rpm' -execdir gb-x-check-rpm-changelogname "${author}" '{}' '+' ||
 		Fatal 'changelog name check FAILED'
 
 	# check release name

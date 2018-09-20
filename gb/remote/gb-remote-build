@@ -9,7 +9,12 @@ task_id="$1"; shift
 subtask_id="$1"; shift
 try="$1"; shift
 iter="$1"; shift
+rebuild=
 swift=
+if [ "${1%%:*}" = rebuild ]; then
+        rebuild="${1#rebuild:}"; shift
+fi
+
 if [ "${1-}" = swift ]; then
 	swift="$1"; shift
 fi
@@ -121,6 +126,19 @@ EOF
 cat <<EOF |hsh-run -- sh -c 'cat >> ~/.profile'
 export RPM_STRICT_INTERDEPS="$dist.$task_id.$subtask_id.$try.$iter"
 EOF
+
+# add changelog entry if rebuild
+if [ -n "$rebuild" ]; then
+        rebuilder="$(GNUPGHOME=/usr/lib/alt-gpgkeys gpg --list-keys "${rebuild#*:}" 2>/dev/null |
+		sed '/^uid[[:space:]]\+/!d;s///;q')"
+	[ -n "$rebuilder" ] ||
+		Fatal 'gpg uid not found'
+	cat <<EOF |hsh-run -- sh -c 'cat >> ~/.profile'
+export RPM_ADD_CHANGELOG_TIME="${rebuild%:*}"
+export RPM_ADD_CHANGELOG_NAME="$rebuilder %|epoch?{%{epoch}:}|%{version}-%{release}"
+export RPM_ADD_CHANGELOG_TEXT="- rebuilt for ${dist/sisyphus/Sisyphus} task #$task_id.$subtask_id"
+EOF
+fi
 
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.

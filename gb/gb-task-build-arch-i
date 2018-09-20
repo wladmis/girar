@@ -55,6 +55,11 @@ if [ -f task/swift -a -s "build/$i/$arch/chroot_base" -a -f "build/$i/$arch/chro
 	swift=swift
 fi
 
+rebuild=
+if [ -f "gears/$i/rebuild" -a ! -f "gears/$i/copy" ]; then
+	rebuild="rebuild:$(stat -c %Y "gears/$i/rebuild"):$(cat "gears/$i/userid")"
+fi
+
 # run the build on remote side
 gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$arch")\"" \
@@ -66,6 +71,7 @@ gb-x-ssh "$remote_host" ./gb-remote-build \
 	"\"$(quote_shell "$i")\"" \
 	"\"$(quote_shell "$task_try")\"" \
 	"\"$(quote_shell "$task_iter")\"" \
+	"\"$(quote_shell "$rebuild")\"" \
 	$swift ||
 		{ stamp_echo >&2 "$I build FAILED";
 		  gb-x-rsync-loop -q -- "$remote_host:build/*log" "build/$i/$arch/";
