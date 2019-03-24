@@ -94,11 +94,6 @@ cat <<EOF |hsh-run -- sh -c 'cat >> ~/.rpmmacros'
 %ubt	%nil
 EOF
 
-# generate $RPM_STRICT_INTERDEPS
-cat <<EOF |hsh-run -- sh -c 'cat >> ~/.profile'
-export RPM_STRICT_INTERDEPS="$dist.$task_id.$subtask_id.$try.$iter"
-EOF
-
 # Step 2: build src.rpm (without sisyphus_check).
 # This will also install all BuildRequires packages.
 cat >"$tmpdir"/save_srpm <<'EOF'
