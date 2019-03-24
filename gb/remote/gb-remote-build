@@ -89,7 +89,6 @@ fi
 # initialize %package_signer before parsing spec.
 cat <<EOF |hsh-run -- sh -c 'cat >> ~/.rpmmacros'
 %package_signer	${package_signer:-%packager}
-%distribution	ALT ${dist/sisyphus/Sisyphus}
 %disttag	$dist+$task_id.$subtask_id.$try.$iter
 # neutralize ubt
 %ubt	%nil
