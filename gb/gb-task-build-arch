@@ -9,7 +9,9 @@ rm -rf "build/repo/$arch"
 for i in $(src_nums); do
 	$0-i "$arch" "$i" || {
 		rc=$?
-		echo "$i" >"build/force-rebuild-$arch"
+		# no need to force task rebuild if abort
+		[ -f task/abort ] ||
+			echo "$i" >"build/force-rebuild-$arch"
 		exit $rc
 	}
 done
